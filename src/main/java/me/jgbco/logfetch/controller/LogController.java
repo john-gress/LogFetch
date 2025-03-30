@@ -38,7 +38,8 @@ public class LogController {
             throws Exception {
 
             System.out.println("logFile: " + logFile + ", offset: " + offset + ", limit: " + limit + ", filter: " + filter);
-            List<String> logs = logService.getLogs(logFile, offset, limit, filter);
+            logService.readLogFile(logFile, offset, limit, filter);
+            List<String> logs = logService.getLogs();
 
             // Constructing the response body as a Map
             Map<String, Object> responseBody = Map.of("logs", logs, "nextOffset", -1);

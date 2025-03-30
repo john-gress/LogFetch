@@ -39,14 +39,15 @@ public class LogControllerTest {
     void testGetLogs() throws Exception {
         // Mock the service method to return a predefined list of log entries
         String logFile = "syslog";  // Example filename within /var/log
-        long offset = 0;
+        long offset = 0L;
         int limit = 10;
-        String filter = "error";  // Example filter keyword
+        String filter = "Error";  // Example filter keyword
 
         // Predefined logs to be returned by the mock
         String logEntry1 = "Error: Something went wrong!";
         String logEntry2 = "Error: Another issue occurred.";
-        when(logService.getLogs(logFile, offset, limit, filter)).thenReturn(Arrays.asList(logEntry1, logEntry2));
+        when(logService.getLogs()).thenReturn(Arrays.asList(logEntry1, logEntry2));
+        when(logService.getEndOffset()).thenReturn(-1L);
 
         // Perform a GET request to /logs with parameters
         mockMvc.perform(MockMvcRequestBuilders.get("/logs")

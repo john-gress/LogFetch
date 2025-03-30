@@ -40,8 +40,8 @@ public class GlobalExceptionHandlerTest {
     public void getLogs_whenNoSuchFileException_expectNotFoundError() throws Exception {
         String errMsg = "Log file not found";
         String expectedErrMsg = "{\"error\":\"" + errMsg + "\"}";
-        when(logService.getLogs("test", 0, 10, "error"))
-                .thenThrow(new NoSuchFileException(errMsg));
+        doThrow(new NoSuchFileException(errMsg))
+                .when(logService).readLogFile("test", 0, 10, "error");
 
         // Perform the request and assert that the correct status code is returned
         mockMvc.perform(get("/logs")
@@ -57,8 +57,8 @@ public class GlobalExceptionHandlerTest {
     public void getLogs_whenSecurityException_expectForbiddenError() throws Exception {
         String errMsg = "Access denied";
         String expectedErrMsg = "{\"error\":\"" + errMsg + "\"}";
-        when(logService.getLogs("test", 0, 10, "error"))
-                .thenThrow(new SecurityException(errMsg));
+        doThrow(new SecurityException(errMsg))
+                .when(logService).readLogFile("test", 0, 10, "error");
 
         // Perform the request and assert that the correct status code is returned
         mockMvc.perform(get("/logs")
