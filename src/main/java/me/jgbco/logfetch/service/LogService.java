@@ -4,6 +4,8 @@ import org.springframework.stereotype.Service;
 import me.jgbco.logfetch.util.LogReader;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class LogService {
@@ -14,7 +16,10 @@ public class LogService {
         this.logReader = logReader;
     }
 
-    public String getLogs(String logFilePath, int limit) throws IOException {
-        return logReader.readLogFile(logFilePath);
+    public List<String> getLogs(String logFilePath, long offset, int limit, String filter) throws IOException {
+        String log = logReader.readLogFile(logFilePath);
+        List<String> logs = new ArrayList<>();
+        logs.add(log);
+        return logs;
     }
 }
