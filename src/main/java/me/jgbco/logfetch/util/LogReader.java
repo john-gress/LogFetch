@@ -55,7 +55,7 @@ public class LogReader {
             } else {
                 endOffset = offset;
             }
-            if (fileChannel.size() < MAX_READ_SIZE || offset < MAX_READ_SIZE) {
+            if (endOffset < MAX_READ_SIZE) {
                 // start at beginning of file
                 startOffset = fileChannel.position();
                 beginningOfFileReached = true;
@@ -63,7 +63,7 @@ public class LogReader {
                 startOffset = endOffset - MAX_READ_SIZE;
                 beginningOfFileReached = false;
             }
-            if (startOffset == endOffset) { // TODO: Is this really endOffset == 0L?
+            if (startOffset == endOffset) {
                 buffer.clear();
                 endOffset = -1;
                 return;

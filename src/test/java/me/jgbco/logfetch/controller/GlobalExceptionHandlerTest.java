@@ -15,6 +15,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import java.nio.file.AccessDeniedException;
 import java.nio.file.NoSuchFileException;
 
 @ExtendWith(MockitoExtension.class)
@@ -55,9 +56,26 @@ public class GlobalExceptionHandlerTest {
 
     @Test
     public void getLogs_whenSecurityException_expectForbiddenError() throws Exception {
-        String errMsg = "Access denied";
+        String errMsg = "Denied";
         String expectedErrMsg = "{\"error\":\"" + errMsg + "\"}";
         doThrow(new SecurityException(errMsg))
+                .when(logService).readLogFile("test", 0, 10, "error");
+
+        // Perform the request and assert that the correct status code is returned
+        mockMvc.perform(get("/logs")
+                        .param("logFile", "test")
+                        .param("limit", "10")
+                        .param("offset", "0")
+                        .param("filter", "error"))
+                .andExpect(status().isForbidden())  // Assert that the status is 403
+                .andExpect(content().string(expectedErrMsg));  // Assert that the error message is correct
+    }
+
+    @Test
+    public void getLogs_whenAccessDeniedException_expectForbiddenError() throws Exception {
+        String errMsg = "Access denied";
+        String expectedErrMsg = "{\"error\":\"" + errMsg + "\"}";
+        doThrow(new AccessDeniedException(errMsg))
                 .when(logService).readLogFile("test", 0, 10, "error");
 
         // Perform the request and assert that the correct status code is returned
