@@ -104,7 +104,7 @@ class LogServiceTest {
         logService.processChunk(0, "");
 
         // Assert no logs are added
-        assertTrue(logService.logs.isEmpty());
+        assertTrue(logService.getLogs().isEmpty());
 
         // Verify that nextLog() was not called
         verify(logReader, times(0)).nextLog();

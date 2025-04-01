@@ -12,8 +12,8 @@ public class LogService {
 
     private final LogReader logReader;
 
-    List<String> logs = new ArrayList<>();
-    long endOffset = 0L;
+    private final List<String> logs = new ArrayList<>();
+    private long endOffset = 0L;
 
     public LogService(LogReader logReader) {
         this.logReader = logReader;

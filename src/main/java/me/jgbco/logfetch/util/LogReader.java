@@ -6,6 +6,8 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 
@@ -45,15 +47,14 @@ public class LogReader {
     }
 
     public void readLogFile(String filename, long offset) throws IOException {
-        String logFilePath = path + "/" + filename;
-        try (FileChannel fileChannel = FileChannel.open(Paths.get(logFilePath), StandardOpenOption.READ)) {
+        Path logFilePath = Paths.get(path, filename);
+        try (FileChannel fileChannel = FileChannel.open(logFilePath, StandardOpenOption.READ)) {
             if (offset == 0) {
                 // Start at end of file
                 endOffset = fileChannel.size();
-            } else if (offset > fileChannel.size()) {
-                throw new IllegalArgumentException("Invalid offset: " + offset);
             } else {
-                endOffset = offset;
+                // If offset is beyond the end of file, clamp the offset to file size.
+                endOffset = Math.min(offset, fileChannel.size());
             }
             if (endOffset < MAX_READ_SIZE) {
                 // start at beginning of file
@@ -65,6 +66,7 @@ public class LogReader {
             }
             if (startOffset == endOffset) {
                 buffer.clear();
+                beginningOfFileReached = true;
                 endOffset = -1;
                 return;
             }
@@ -102,7 +104,7 @@ public class LogReader {
             int logStartIndex = bufIndex + 1;
             buffer.position(logStartIndex);
             buffer.get(bytes);
-            log = new String(bytes);
+            log = new String(bytes, StandardCharsets.UTF_8);
             endOffset = endOffset - logSize;
         } else if (bufIndex == -1 && beginningOfFileReached) {
             int logSize = logEndIndex+1;
@@ -110,7 +112,7 @@ public class LogReader {
             int logStartIndex = 0;
             buffer.position(logStartIndex);
             buffer.get(bytes);
-            log = new String(bytes);
+            log = new String(bytes, StandardCharsets.UTF_8);
             endOffset = -1;
         }
 

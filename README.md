@@ -39,6 +39,9 @@ GET /logs?logFile=system.log&limit=10&offset=0&filter=Error
   "nextOffset": 123456
 }
 ```
+
+> #### NOTE: `nextOffset = -1` when file has been completely processed (beginning of file reached).
+
 ---
 
 ## **Installation & Deployment**

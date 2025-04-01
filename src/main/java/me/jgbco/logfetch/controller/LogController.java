@@ -37,7 +37,7 @@ public class LogController {
             @RequestParam(name = "filter", required = false) String filter)
             throws Exception {
 
-            System.out.println("logFile: " + logFile + ", offset: " + offset + ", limit: " + limit + ", filter: " + filter);
+            //System.out.println("logFile: " + logFile + ", offset: " + offset + ", limit: " + limit + ", filter: " + filter);
             logService.readLogFile(logFile, offset, limit, filter);
             List<String> logs = logService.getLogs();
             long nextOffset = logService.getEndOffset();

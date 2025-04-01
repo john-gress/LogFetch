@@ -27,17 +27,6 @@ public class LogReaderTest {
     }
 
     @Test
-    public void readLogFile_givenOffsetBeyondEndOfFile_throwsException()
-            throws URISyntaxException {
-        Path testPath = Paths.get(getClass().getClassLoader().getResource("log").toURI());
-        LogReader logReader = new LogReader(testPath.toString());
-
-        Assertions.assertThrows(IllegalArgumentException.class, () -> {
-            logReader.readLogFile("logfetch.log", 1000);
-        }, "Expected IllegalArgumentException when passing offset beyond end of file");
-    }
-
-    @Test
     public void readLogFile_givenNonExistentFile_throwsNoSuchFileException()
             throws IOException, URISyntaxException {
         Path testPath = Paths.get(getClass().getClassLoader().getResource("log").toURI());
@@ -74,6 +63,36 @@ public class LogReaderTest {
         Path testPath = Paths.get(getClass().getClassLoader().getResource("log").toURI());
         LogReader logReader = new LogReader(testPath.toString());
         logReader.readLogFile("logfetch.log", 0);
+        // Perform assertions
+        Assertions.assertEquals(expectedLog1, logReader.nextLog());
+        Assertions.assertEquals(expectedLog2, logReader.nextLog());
+        Assertions.assertEquals(expectedLog3, logReader.nextLog());
+        Assertions.assertEquals(expectedLog4, logReader.nextLog());
+        Assertions.assertEquals(expectedLog5, logReader.nextLog());
+        Assertions.assertEquals(expectedLog6, logReader.nextLog());
+        Assertions.assertEquals(expectedLog7, logReader.nextLog());
+        Assertions.assertEquals(expectedLog8, logReader.nextLog());
+        Assertions.assertEquals(expectedLog9, logReader.nextLog());
+        Assertions.assertEquals(expectedLog10, logReader.nextLog());
+        Assertions.assertNull(logReader.nextLog());
+        Assertions.assertEquals(-1, logReader.getEndOffset());
+    }
+
+    @Test
+    public void readLogFile_givenOffsetBeyondEndOfFile_readsFromEndOfFile() throws IOException, URISyntaxException {
+        String expectedLog10 = "4 Info, 3 Error, 2 Warning";
+        String expectedLog9 = "Info: Log 9";
+        String expectedLog8 = "Error: Log 8";
+        String expectedLog7 = "Info: Log 7";
+        String expectedLog6 = "Info: Log 6";
+        String expectedLog5 = "Error: Log 5";
+        String expectedLog4 = "Warning: Log 4";
+        String expectedLog3 = "Info: Log 3";
+        String expectedLog2 = "Warning: Log 2";
+        String expectedLog1 = "Error: Log 1";
+        Path testPath = Paths.get(getClass().getClassLoader().getResource("log").toURI());
+        LogReader logReader = new LogReader(testPath.toString());
+        logReader.readLogFile("logfetch.log", 1000);
         // Perform assertions
         Assertions.assertEquals(expectedLog1, logReader.nextLog());
         Assertions.assertEquals(expectedLog2, logReader.nextLog());

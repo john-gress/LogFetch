@@ -31,7 +31,8 @@ complicated deployment and would require some thought for the rpm or deb package
 ---
 
 ## Future work
-* Fix error response for Spring Boot validation. The return code is correct, but no error message is ugly.
+* Fix error response for Spring Boot validation. The return code is correct, but message from validation is not used.
+* Fix error handling. There's some issue with the jakarta constraints, and the generic exception handler is being used to mask this issue.
 * Add security (API keys or JWT).
 * Add logging.
 * Discuss need for https.
@@ -42,3 +43,4 @@ complicated deployment and would require some thought for the rpm or deb package
 * Also need to think about the return size of a large number of large logs.
 * Determine optimal MAX_READ_SIZE.
 * Add data compression to response.
+* Detect binary files and exclude from processing, or handle appropriately.
