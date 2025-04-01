@@ -71,6 +71,23 @@ public class GlobalExceptionHandlerTest {
     }
 
     @Test
+    public void getLogs_whenIllegalArgumentException_expectBadRequestError() throws Exception {
+        String errMsg = "Invalid offset";
+        String expectedErrMsg = "{\"error\":\"" + errMsg + "\"}";
+        doThrow(new IllegalArgumentException(errMsg))
+                .when(logService).readLogFile("test", 1000, 10, "error");
+
+        // Perform the request and assert that the correct status code is returned
+        mockMvc.perform(get("/logs")
+                        .param("logFile", "test")
+                        .param("limit", "10")
+                        .param("offset", "1000")
+                        .param("filter", "error"))
+                .andExpect(status().isBadRequest())  // Assert that the status is 400
+                .andExpect(content().string(expectedErrMsg));  // Assert that the error message is correct
+    }
+
+    @Test
     public void getLogs_whenOverLimitParameter_expectBadRequestError() throws Exception {
         String expectedErrMsg = "{\"error\":\"" + LogController.MAX_LIMIT_ERROR_MSG + "\"}";
         String overLimit = Integer.toString(LogController.MAX_LIMIT + 1);

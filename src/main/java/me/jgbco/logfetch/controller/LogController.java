@@ -18,7 +18,7 @@ import java.util.Map;
 public class LogController {
 
     private final LogService logService;
-    static final int MAX_LIMIT = 1000;
+    static final int MAX_LIMIT = 10000;
     static final String MAX_LIMIT_ERROR_MSG = "Max limit is " + MAX_LIMIT;
     static final int MIN_OFFSET = 0;
     static final String MIN_OFFSET_ERROR_MSG = "Offset can not be negative";
@@ -40,9 +40,8 @@ public class LogController {
             System.out.println("logFile: " + logFile + ", offset: " + offset + ", limit: " + limit + ", filter: " + filter);
             logService.readLogFile(logFile, offset, limit, filter);
             List<String> logs = logService.getLogs();
-
-            // Constructing the response body as a Map
-            Map<String, Object> responseBody = Map.of("logs", logs, "nextOffset", -1);
+            long nextOffset = logService.getEndOffset();
+            Map<String, Object> responseBody = Map.of("logs", logs, "nextOffset", nextOffset);
 
             return ResponseEntity.ok(responseBody);
     }

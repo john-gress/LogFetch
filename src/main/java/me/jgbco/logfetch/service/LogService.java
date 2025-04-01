@@ -43,7 +43,7 @@ public class LogService {
             String log = logReader.nextLog();
             if (log == null) {
                 chunkProcessed = true;
-            } else if (applyFilter(log, filter)) {
+            } else if (!log.isBlank() && applyFilter(log, filter)) {
                 logs.add(log);
             }
         }

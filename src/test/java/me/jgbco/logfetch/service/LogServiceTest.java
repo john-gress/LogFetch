@@ -111,6 +111,24 @@ class LogServiceTest {
     }
 
     @Test
+    void processChunk_withBlankLines_blankLinesAreSkipped() {
+        // Mock logReader.nextLog() to return blank log between other logs, then null when exhausted
+        when(logReader.nextLog()).thenReturn("Log A", "  ", "Log B", null);
+
+        // Process with limit 5 (process full chunk)
+        logService.processChunk(5, "");
+
+        // Assert that only 2 logs were stored
+        List<String> logs = logService.getLogs();
+        assertEquals(2, logs.size());
+        assertEquals("Log A", logs.get(0));
+        assertEquals("Log B", logs.get(1));
+
+        // Verify logReader.nextLog() was called exactly 4 times
+        verify(logReader, times(4)).nextLog();
+    }
+
+    @Test
     void readLogFile_withMoreLogsThanRequested_readsLogsUntilLimitReached() throws IOException {
         // Mock logReader.nextLog() to return 4 logs, then null when exhausted
         when(logReader.nextLog()).thenReturn("Info: Log A", "Info: Log B", null, "Info: Log C", "Info: Log D", null);

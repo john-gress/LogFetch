@@ -3,16 +3,19 @@ package me.jgbco.logfetch.util;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
-import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 
 @Component
 public class LogReader {
-    static final int MAX_READ_SIZE = 8192; // 8 KB reads
-    byte[] buffer = new byte[MAX_READ_SIZE];
+    static final int MAX_READ_SIZE = 1048576; // 1 MB reads
+    static final char LOG_SEPARATOR = '\n';
     final String path;
+    boolean beginningOfFileReached = false;
+    ByteBuffer buffer = ByteBuffer.allocate(MAX_READ_SIZE);
     long startOffset = 0L;
     long endOffset = 0L;
 
@@ -20,36 +23,97 @@ public class LogReader {
         this.path = path;
     }
 
+    // For testing
+    void setBuffer(ByteBuffer buffer) {
+        this.buffer = buffer;
+    }
+
+    public void setStartOffset(long startOffset) {
+        this.startOffset = startOffset;
+    }
+
+    public long getStartOffset() {
+        return startOffset;
+    }
+
+    public void setEndOffset(long endOffset) {
+        this.endOffset = endOffset;
+    }
+
     public long getEndOffset() {
         return endOffset;
     }
 
     public void readLogFile(String filename, long offset) throws IOException {
-        /*
-        String logFilePath = path + filename;
-        try (RandomAccessFile file = new RandomAccessFile(logFilePath, "r")) {
+        String logFilePath = path + "/" + filename;
+        try (FileChannel fileChannel = FileChannel.open(Paths.get(logFilePath), StandardOpenOption.READ)) {
             if (offset == 0) {
-                endOffset = file.length();
+                // Start at end of file
+                endOffset = fileChannel.size();
+            } else if (offset > fileChannel.size()) {
+                throw new IllegalArgumentException("Invalid offset: " + offset);
             } else {
                 endOffset = offset;
             }
-            if (file.length() < MAX_READ_SIZE) {
-                startOffset = file.getFilePointer();
+            if (fileChannel.size() < MAX_READ_SIZE || offset < MAX_READ_SIZE) {
+                // start at beginning of file
+                startOffset = fileChannel.position();
+                beginningOfFileReached = true;
             } else {
                 startOffset = endOffset - MAX_READ_SIZE;
+                beginningOfFileReached = false;
             }
-            if (startOffset == endOffset) {
+            if (startOffset == endOffset) { // TODO: Is this really endOffset == 0L?
+                buffer.clear();
+                endOffset = -1;
                 return;
             }
-            file.seek(startOffset);
-            file.read(buffer);
+            buffer.clear();
+            fileChannel.position(startOffset);
+            fileChannel.read(buffer);
+            buffer.flip();
         } catch (IOException e) {
+            // Using try-catch here takes care of auto-closable for the file.
+            // Rethrowing the exception causes Spring Boot to return an appropriate error response.
             throw e;
         }
-        */
     }
 
     public String nextLog() {
-        return "testing";
+        String log = null;
+        if (endOffset == -1) {
+            return log;
+        }
+        int bufIndex = (int)(endOffset - startOffset - 1);
+        // Read past any trailing LOG_SEPARATORs
+        while (bufIndex >= 0 && buffer.get(bufIndex) == LOG_SEPARATOR) {
+            bufIndex--;
+            endOffset--;
+        }
+        int logEndIndex = bufIndex;
+
+        // Find the next LOG_SEPARATOR
+        while (bufIndex >= 0 && buffer.get(bufIndex) != LOG_SEPARATOR) {
+            bufIndex--;
+        }
+        if (bufIndex != -1 && buffer.get(bufIndex) == LOG_SEPARATOR) {
+            int logSize = logEndIndex - bufIndex;
+            byte[] bytes = new byte[logSize];
+            int logStartIndex = bufIndex + 1;
+            buffer.position(logStartIndex);
+            buffer.get(bytes);
+            log = new String(bytes);
+            endOffset = endOffset - logSize;
+        } else if (bufIndex == -1 && beginningOfFileReached) {
+            int logSize = logEndIndex+1;
+            byte[] bytes = new byte[logSize];
+            int logStartIndex = 0;
+            buffer.position(logStartIndex);
+            buffer.get(bytes);
+            log = new String(bytes);
+            endOffset = -1;
+        }
+
+        return log;
     }
 }
